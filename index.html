@@ -189,7 +189,8 @@
           <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
         </svg>
       );
-      export default function SunriseSunsetApp() {
+
+      function SunriseSunsetApp() {
         const [sunData, setSunData] = useState(null);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState(null);
@@ -239,38 +240,34 @@
           if (!sunData) return null;
 
           // Step 1: Calculate daylight duration (sunrise to sunset)
-          const [daylightHours, daylightMinutes] = sunData.dayLength
-            .split(":")
-            .map(Number);
+          const [daylightHours, daylightMinutes] = sunData.dayLength.split(":").map(Number);
           const totalDaylightMinutes = daylightHours * 60 + daylightMinutes;
-
+          
           // Step 2: Find half of daylight duration
           const halfDaylightMinutes = totalDaylightMinutes / 2;
-
+          
           // Step 3: Parse sunset time
-          const [sunsetHours, sunsetMinutes] = sunData.sunset
-            .split(":")
-            .map(Number);
-
+          const [sunsetHours, sunsetMinutes] = sunData.sunset.split(":").map(Number);
+          
           // Step 4: Add half daylight to sunset
           let eshaHours = sunsetHours;
           let eshaMinutes = sunsetMinutes + halfDaylightMinutes;
-
+          
           // Handle minute overflow
           if (eshaMinutes >= 60) {
             eshaHours += Math.floor(eshaMinutes / 60);
             eshaMinutes = eshaMinutes % 60;
           }
-
+          
           // Handle hour overflow (past midnight)
           if (eshaHours >= 24) {
             eshaHours = eshaHours - 24;
           }
-
+          
           // Determine AM/PM
           // 0-11 hours = AM, 12-23 hours = PM
           let period = eshaHours < 12 ? "AM" : "PM";
-
+          
           // Convert to 12-hour format for display
           let display12Hour = eshaHours % 12;
           if (display12Hour === 0) display12Hour = 12;
@@ -280,7 +277,7 @@
             minutes: Math.round(eshaMinutes),
             display12Hour: display12Hour,
             period: period,
-            halfDaylightMinutes: halfDaylightMinutes,
+            halfDaylightMinutes: halfDaylightMinutes
           };
         };
 
@@ -291,25 +288,20 @@
           const parts = timeString.split(":");
           const hours = parseInt(parts[0], 10);
           const minutes = parseInt(parts[1], 10);
-
+          
           // Determine AM/PM based on 24-hour format
           // 0-11 = AM, 12-23 = PM
           const period = hours < 12 ? "AM" : "PM";
-
-          console.log(sunData.sunrise);
-
+          
           // Convert to 12-hour format
           let display12Hour = hours % 12;
           if (display12Hour === 0) display12Hour = 12;
-
-          return `${display12Hour}:${String(minutes).padStart(
-            2,
-            "0"
-          )} ${period}`;
+          
+          return `${display12Hour}:${String(minutes).padStart(2, "0")} ${period}`;
         };
 
         return (
-          <div className="min-h-screen bg-linear-to-br from-orange-50 via-amber-50 to-yellow-50 flex items-center justify-center p-4">
+          <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
               <div className="relative" style={{ aspectRatio: "9/19.5" }}>
                 {/* Header */}
@@ -329,7 +321,7 @@
                   style={{ height: "45%" }}
                 >
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-64 h-64 rounded-full bg-linear-to-br from-indigo-100 to-purple-100 opacity-30"></div>
+                    <div className="w-64 h-64 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 opacity-30"></div>
                   </div>
 
                   {loading && (
@@ -354,8 +346,7 @@
                   {!loading && !error && eshaTime && (
                     <div className="text-center z-10">
                       <div className="text-8xl font-light tracking-wider mb-4 font-mono">
-                        {eshaTime.display12Hour}:
-                        {String(eshaTime.minutes).padStart(2, "0")}
+                        {eshaTime.display12Hour}:{String(eshaTime.minutes).padStart(2, "0")}
                         <div className="text-indigo-600">{eshaTime.period}</div>
                       </div>
                       <div className="text-sm text-gray-500 mt-6 tracking-widest">
@@ -371,7 +362,7 @@
                 {/* Sun Times */}
                 {!loading && !error && sunData && eshaTime && (
                   <div className="space-y-6 px-4">
-                    <div className="flex items-center justify-between p-4 bg-linear-to-r from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center">
                           <Moon className="w-6 h-6 text-white" />
@@ -381,14 +372,13 @@
                             Esha Time
                           </p>
                           <p className="text-2xl font-semibold">
-                            {eshaTime.display12Hour}:
-                            {String(eshaTime.minutes).padStart(2, "0")}
+                            {eshaTime.display12Hour}:{String(eshaTime.minutes).padStart(2, "0")} {eshaTime.period}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-linear-to-r from-orange-50 to-yellow-50 rounded-2xl">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-2xl">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
                           <Sunrise className="w-6 h-6 text-white" />
@@ -404,7 +394,7 @@
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-linear-to-r from-orange-100 to-red-50 rounded-2xl">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-100 to-red-50 rounded-2xl">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
                           <Sunset className="w-6 h-6 text-white" />
@@ -509,7 +499,8 @@
       const manifest = {
         name: "Esha Time Tracker - Dhaka",
         short_name: "Esha Time",
-        description: "Track Esha prayer time for Dhaka, Bangladesh",
+        description:
+          "Track Esha prayer time for Dhaka, Bangladesh",
         start_url: "./",
         display: "standalone",
         background_color: "#ffffff",
