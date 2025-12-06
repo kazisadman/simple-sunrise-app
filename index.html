@@ -265,7 +265,8 @@
           }
           
           // Determine AM/PM
-          let period = eshaHours >= 12 ? "PM" : "AM";
+          // 0-11 hours = AM, 12-23 hours = PM
+          let period = eshaHours < 12 ? "AM" : "PM";
           
           // Convert to 12-hour format for display
           let display12Hour = eshaHours % 12;
@@ -284,7 +285,9 @@
 
         const formatTime = (timeString) => {
           const [hours, minutes] = timeString.split(":").map(Number);
-          const period = hours >= 12 ? "PM" : "AM";
+          // hours is in 24-hour format (0-23)
+          // 0-11 = AM, 12-23 = PM
+          const period = hours < 12 ? "AM" : "PM";
           const display12Hour = hours % 12 || 12;
           return `${display12Hour}:${String(minutes).padStart(2, "0")} ${period}`;
         };
