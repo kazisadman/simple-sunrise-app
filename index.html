@@ -13,7 +13,7 @@
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
-    <title>Daylight & Esha Tracker</title>
+    <title>Esha Time Tracker</title>
     <link rel="manifest" href="#" id="manifest-placeholder" />
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -236,58 +236,58 @@
           }
         };
 
-        const calculateDaylight = () => {
+        const calculateEshaTime = () => {
           if (!sunData) return null;
 
-          const [hours, minutes] = sunData.dayLength.split(":").map(Number);
-
-          const totalMinutes = hours * 60 + minutes;
-          const halfOfTotalMinutes = totalMinutes / 2;
-          const finalTotalMin = totalMinutes + halfOfTotalMinutes;
-          const finalHours = Math.floor(finalTotalMin / 60);
-          const finalMinutes = finalTotalMin - finalHours * 60;
+          // Step 1: Calculate daylight duration (sunrise to sunset)
+          const [daylightHours, daylightMinutes] = sunData.dayLength.split(":").map(Number);
+          const totalDaylightMinutes = daylightHours * 60 + daylightMinutes;
+          
+          // Step 2: Find half of daylight duration
+          const halfDaylightMinutes = totalDaylightMinutes / 2;
+          
+          // Step 3: Parse sunset time
+          const [sunsetHours, sunsetMinutes] = sunData.sunset.split(":").map(Number);
+          
+          // Step 4: Add half daylight to sunset
+          let eshaHours = sunsetHours;
+          let eshaMinutes = sunsetMinutes + halfDaylightMinutes;
+          
+          // Handle minute overflow
+          if (eshaMinutes >= 60) {
+            eshaHours += Math.floor(eshaMinutes / 60);
+            eshaMinutes = eshaMinutes % 60;
+          }
+          
+          // Handle hour overflow (past midnight)
+          if (eshaHours >= 24) {
+            eshaHours = eshaHours - 24;
+          }
+          
+          // Determine AM/PM
+          let period = eshaHours >= 12 ? "PM" : "AM";
+          
+          // Convert to 12-hour format for display
+          let display12Hour = eshaHours % 12;
+          if (display12Hour === 0) display12Hour = 12;
 
           return {
-            hours,
-            minutes,
-            halfOfTotalMinutes,
-            totalMinutes,
-            finalHours,
-            finalMinutes,
+            hours: eshaHours,
+            minutes: Math.round(eshaMinutes),
+            display12Hour: display12Hour,
+            period: period,
+            halfDaylightMinutes: halfDaylightMinutes
           };
         };
 
-        const daylight = calculateDaylight();
+        const eshaTime = calculateEshaTime();
 
         const formatTime = (timeString) => {
-          return timeString.substring(0, 4) + " " + timeString.substring(8, 10);
+          const [hours, minutes] = timeString.split(":").map(Number);
+          const period = hours >= 12 ? "PM" : "AM";
+          const display12Hour = hours % 12 || 12;
+          return `${display12Hour}:${String(minutes).padStart(2, "0")} ${period}`;
         };
-
-        const calculateEshaTime = () => {
-          if (!sunData || !daylight) return null;
-
-          const [sunsetHours, sunsetMin] = sunData.sunset
-            .split(":")
-            .map(Number);
-
-          const hours = Math.floor(daylight.halfOfTotalMinutes / 60);
-          const minutes = daylight.halfOfTotalMinutes % 60;
-
-          const eshaHours = sunsetHours + hours;
-          const eshaMin = sunsetMin + minutes;
-
-          let period;
-
-          if (eshaHours < 12) {
-            period = "PM";
-          } else {
-            period = "AM";
-          }
-
-          return { eshaHours, eshaMin, period };
-        };
-
-        const eshaTime = calculateEshaTime();
 
         return (
           <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 flex items-center justify-center p-4">
@@ -295,7 +295,7 @@
               <div className="relative" style={{ aspectRatio: "9/19.5" }}>
                 {/* Header */}
                 <div className="flex justify-between items-center mb-12">
-                  <h1 className="text-3xl font-bold">Daylight</h1>
+                  <h1 className="text-3xl font-bold">Esha Time</h1>
                   <div className="flex gap-3 items-center">
                     <p className="text-sm">
                       {sunData?.location.substring(0, 5)}
@@ -310,7 +310,7 @@
                   style={{ height: "45%" }}
                 >
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-64 h-64 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 opacity-30"></div>
+                    <div className="w-64 h-64 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 opacity-30"></div>
                   </div>
 
                   {loading && (
@@ -332,28 +332,28 @@
                     </div>
                   )}
 
-                  {!loading && !error && daylight && (
+                  {!loading && !error && eshaTime && (
                     <div className="text-center z-10">
-                      <div className="text-7xl font-light tracking-wider mb-2 font-mono">
-                        {eshaTime.eshaHours % 12}:{eshaTime.eshaMin}
+                      <div className="text-8xl font-light tracking-wider mb-4 font-mono">
+                        {eshaTime.display12Hour}:{String(eshaTime.minutes).padStart(2, "0")}
                       </div>
-                      <div className="text-7xl font-light tracking-wider font-mono">
+                      <div className="text-5xl font-light tracking-wider font-mono text-indigo-600">
                         {eshaTime.period}
                       </div>
-                      <div className="text-sm text-gray-500 mt-4 tracking-widest">
-                        ESHA TIME
+                      <div className="text-sm text-gray-500 mt-6 tracking-widest">
+                        ESHA SALAH TIME
                       </div>
                     </div>
                   )}
 
-                  <div className="absolute left-8 top-1/3 w-2 h-2 bg-black rounded-full"></div>
-                  <div className="absolute right-8 top-2/3 w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <div className="absolute left-8 top-1/3 w-2 h-2 bg-indigo-600 rounded-full"></div>
+                  <div className="absolute right-8 top-2/3 w-2 h-2 bg-purple-500 rounded-full"></div>
                 </div>
 
                 {/* Sun Times */}
                 {!loading && !error && sunData && eshaTime && (
                   <div className="space-y-6 px-4">
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center">
                           <Moon className="w-6 h-6 text-white" />
@@ -363,9 +363,7 @@
                             Esha Time
                           </p>
                           <p className="text-2xl font-semibold">
-                            {`${eshaTime.eshaHours % 12 || 12}:${String(
-                              eshaTime.eshaMin
-                            ).padStart(2, "0")} ${eshaTime.period}`}
+                            {eshaTime.display12Hour}:{String(eshaTime.minutes).padStart(2, "0")} {eshaTime.period}
                           </p>
                         </div>
                       </div>
@@ -418,7 +416,7 @@
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           const swCode = `
-                    const CACHE_NAME = 'esha-tracker-v1';
+                    const CACHE_NAME = 'esha-tracker-v2';
                     const urlsToCache = [
                         '/',
                         'https://unpkg.com/react@18/umd/react.production.min.js',
@@ -493,21 +491,21 @@
         name: "Esha Time Tracker - Dhaka",
         short_name: "Esha Time",
         description:
-          "Track sunrise, sunset, and Esha time for Dhaka, Bangladesh",
+          "Track Esha prayer time for Dhaka, Bangladesh",
         start_url: "./",
         display: "standalone",
         background_color: "#ffffff",
-        theme_color: "#f97316",
+        theme_color: "#4f46e5",
         orientation: "portrait",
         icons: [
           {
-            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234f46e5;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23f97316;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23grad)'/%3E%3Cpath d='M 50 30 A 15 15 0 0 0 50 60 A 20 20 0 1 1 50 30 Z' fill='%23fef3c7'/%3E%3C/svg%3E",
+            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234f46e5;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%237c3aed;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23grad)'/%3E%3Cpath d='M 50 30 A 15 15 0 0 0 50 60 A 20 20 0 1 1 50 30 Z' fill='%23fef3c7'/%3E%3C/svg%3E",
             sizes: "192x192",
             type: "image/svg+xml",
             purpose: "any maskable",
           },
           {
-            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234f46e5;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23f97316;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23grad)'/%3E%3Cpath d='M 50 30 A 15 15 0 0 0 50 60 A 20 20 0 1 1 50 30 Z' fill='%23fef3c7'/%3E%3C/svg%3E",
+            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234f46e5;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%237c3aed;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23grad)'/%3E%3Cpath d='M 50 30 A 15 15 0 0 0 50 60 A 20 20 0 1 1 50 30 Z' fill='%23fef3c7'/%3E%3C/svg%3E",
             sizes: "512x512",
             type: "image/svg+xml",
             purpose: "any maskable",
